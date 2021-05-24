@@ -31,7 +31,7 @@ User.byToken = async (token) => {
   try {
     const user = await jwt.verify(token, process.env.JWT);
     if (user) {
-      return await User.findByPk(user.userId);
+      return await User.findByPk(user.userId, {include: [Note]});
     }
     const error = Error("bad credentials");
     error.status = 401;

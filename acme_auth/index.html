@@ -57,6 +57,16 @@
         window.localStorage.removeItem('token');
         this.setState({ auth: {}});
       }
+
+      async getNotes(id){
+        const token = window.localStorage.getItem('token');
+        console.log(token)
+        console.log(id)
+        let res = await axios.get(`/api/users/${id}/notes`, {headers: { authorization: token}})
+        console.log(res)
+        return res.data.notes
+      }
+
       async attemptTokenLogin(){
         const token = window.localStorage.getItem('token');
         if(token){
@@ -65,8 +75,8 @@
               authorization: token
             }
           });
-          let res = await axios.get(`/api/users/${response.data.id}/notes`)
-          const notes = res.data.notes
+          console.log(response.data.id)
+          const notes = await this.getNotes(response.data.id)
           this.setState({ auth: response.data, notes: notes });
         }
       }
@@ -83,6 +93,7 @@
       render(){
         const { auth, notes } = this.state;
         const { signIn, logout } = this;
+        console.log(notes)
 
         if(!auth.id){
           return <SignIn signIn={ signIn }/>
@@ -92,7 +103,7 @@
             <div>
               Welcome { auth.username }
               {notes.map((note) =>
-                <p>
+                <p key={note.id}>
                   {note.text}
                   </p>
               )}

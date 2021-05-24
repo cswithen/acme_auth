@@ -1,42 +1,47 @@
-const express = require('express');
+const express = require("express");
 const app = express();
 app.use(express.json());
-const { models: { User , Note}} = require('./db');
-const path = require('path');
-const { notEqual } = require('assert');
+const {
+  models: { User, Note },
+} = require("./db");
+const path = require("path");
 
-app.get('/', (req, res)=> res.sendFile(path.join(__dirname, 'index.html')));
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
 
-app.post('/api/auth', async(req, res, next)=> {
+app.post("/api/auth", async (req, res, next) => {
   try {
-    res.send({ token: await User.authenticate(req.body)});
-  }
-  catch(ex){
+    res.send({ token: await User.authenticate(req.body) });
+  } catch (ex) {
     next(ex);
   }
 });
 
-app.get('/api/auth', async(req, res, next)=> {
+app.get("/api/auth", async (req, res, next) => {
   try {
     res.send(await User.byToken(req.headers.authorization));
-  }
-  catch(ex){
+  } catch (ex) {
     next(ex);
   }
 });
 
 //GET
-app.get('/api/users/:id/notes', async(req, res, next) => {
+app.get("/api/users/:id/notes", async (req, res, next) => {
   try {
-    res.send(await User.findByPk(req.params.id, {
-      include: [Note]
-    }))
+    console.log(req.headers.authorization);
+    const { id } = await User.byToken(req.headers.authorization);
+    Number(req.params.id) === id
+      ? res.send(
+          await User.findByPk(id, {
+            include: [Note],
+          })
+        )
+      : res.send("error");
   } catch (error) {
-    next(error)
+    next(error);
   }
-})
+});
 
-app.use((err, req, res, next)=> {
+app.use((err, req, res, next) => {
   console.log(err);
   res.status(err.status || 500).send({ error: err.message });
 });
