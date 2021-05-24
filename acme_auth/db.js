@@ -15,6 +15,13 @@ const conn = new Sequelize(
   config
 );
 
+const Note = conn.define("note", {
+  text: STRING
+});
+
+
+
+
 const User = conn.define("user", {
   username: STRING,
   password: STRING,
@@ -66,6 +73,18 @@ const syncAndSeed = async () => {
   const [lucy, moe, larry] = await Promise.all(
     credentials.map((credential) => User.create(credential))
   );
+  const notes = [
+    {text: "I'm baby meh whatever intelligentsia health goth"},
+    {text: "Tumblr skateboard thundercats, cronut ethical affogato "},
+    {text: "Pabst everyday carry lumbersexual, "}
+  ]
+
+  const [note1, note2, note3] = await Promise.all(
+    notes.map((note) => Note.create(note))
+  )
+
+  await lucy.setNotes([note1, note2])
+  await moe.setNotes(note3)
 
   return {
     users: {
@@ -76,9 +95,13 @@ const syncAndSeed = async () => {
   };
 };
 
+User.hasMany(Note);
+Note.belongsTo(User);
+
 module.exports = {
   syncAndSeed,
   models: {
     User,
+    Note
   },
 };

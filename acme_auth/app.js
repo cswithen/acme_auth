@@ -1,8 +1,9 @@
 const express = require('express');
 const app = express();
 app.use(express.json());
-const { models: { User }} = require('./db');
+const { models: { User , Note}} = require('./db');
 const path = require('path');
+const { notEqual } = require('assert');
 
 app.get('/', (req, res)=> res.sendFile(path.join(__dirname, 'index.html')));
 
@@ -23,6 +24,17 @@ app.get('/api/auth', async(req, res, next)=> {
     next(ex);
   }
 });
+
+//GET
+app.get('/api/users/:id/notes', async(req, res, next) => {
+  try {
+    res.send(await User.findByPk(req.params.id, {
+      include: [Note]
+    }))
+  } catch (error) {
+    next(error)
+  }
+})
 
 app.use((err, req, res, next)=> {
   console.log(err);
