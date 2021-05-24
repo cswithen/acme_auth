@@ -4,6 +4,9 @@ const config = {
   logging: false
 };
 
+const jwt = require('jsonwebtoken')
+
+
 if(process.env.LOGGING){
   delete config.logging;
 }
@@ -16,9 +19,9 @@ const User = conn.define('user', {
 
 User.byToken = async(token)=> {
   try {
-    const user = await User.findByPk(token);
+    const user = await jwt.verify(token, process.env.JWT)
     if(user){
-      return user;
+      return await User.findByPk(user.userId);
     }
     const error = Error('bad credentials');
     error.status = 401;
@@ -39,7 +42,8 @@ User.authenticate = async({ username, password })=> {
     }
   });
   if(user){
-    return user.id;
+    const token = jwt.sign({ userId: user.id }, process.env.JWT)
+    return token
   }
   const error = Error('bad credentials');
   error.status = 401;
