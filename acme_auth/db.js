@@ -37,17 +37,12 @@ User.byToken = async (token) => {
 };
 
 User.authenticate = async ({ username, password }) => {
-  const hashedPass = await bcrypt.hash(password, 10)
-  // const auth = await bcrypt.compare(password, hashedPass)
-  // console.log(auth)
   const user = await User.findOne({
     where: {
       username,
-      password: hashedPass
     },
   });
-  if (user) {
-
+  if (await bcrypt.compare(password, user.password)) {
     const token = jwt.sign({ userId: user.id }, process.env.JWT);
     return token;
   }
